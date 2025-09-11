@@ -38,8 +38,15 @@ def _assert_increasing(x: np.ndarray):
 
 
 def _latitude_cell_bounds(x: np.ndarray) -> np.ndarray:
-    pi_over_2 = np.array([np.pi / 2], dtype=x.dtype)
-    return np.concatenate([-pi_over_2, (x[:-1] + x[1:]) / 2, pi_over_2])
+    # Compute the difference in between cells
+    diff = np.diff(x)
+    if diff.std() > 0.5:
+        raise ValueError(
+            "Nonuniform grid! Need to think about spatial averaging more carefully.")
+    diff = diff.mean()
+    lower_bound = np.array([x[0] - diff / 2.0], dtype=x.dtype)
+    upper_bound = np.array([x[-1] + diff / 2.0], dtype=x.dtype)
+    return np.concatenate([lower_bound, (x[:-1] + x[1:]) / 2, upper_bound])
 
 
 def _cell_area_from_latitude(points: np.ndarray) -> np.ndarray:
